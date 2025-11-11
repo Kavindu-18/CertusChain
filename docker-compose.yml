@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with TimescaleDB
+  database:
+    image: timescale/timescaledb:latest-pg14
+    container_name: certuschain-db
+    environment:
+      POSTGRES_DB: certuschain
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS Core API
+  core-api:
+    build:
+      context: ./core-api
+      dockerfile: Dockerfile
+    container_name: certuschain-core-api
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@database:5432/certuschain
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRATION: 7d
+      AI_SERVICE_URL: http://ai-service:8001
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ./core-api:/app
+      - /app/node_modules
+    command: npm run start:dev
+
+  # Python FastAPI AI/ML Service
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: certuschain-ai-service
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@database:5432/certuschain
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-your-openai-api-key}
+      PORT: 8001
+    ports:
+      - "8001:8001"
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ./ai-service:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+volumes:
+  postgres_data:
