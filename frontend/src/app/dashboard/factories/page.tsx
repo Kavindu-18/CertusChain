@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Plus, Pencil, Trash2, MapPin } from 'lucide-react';
+import { Plus, Pencil, Trash2, MapPin, Factory as FactoryIcon } from 'lucide-react';
 import { factoriesAPI } from '@/lib/api';
 
 interface Factory {
@@ -246,7 +246,7 @@ export default function FactoriesPage() {
       {factories.length === 0 && !showForm && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Factory className="h-12 w-12 text-muted-foreground mb-4" />
+            <FactoryIcon className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No factories yet</h3>
             <p className="text-muted-foreground text-center mb-4">
               Add your first factory to start tracking your supply chain
